@@ -21,6 +21,13 @@ public class StreamProtocol {
 	public static final int END = -1;
 	
 	/**
+	 * When a state-method encounter an error, it can throws an exception or 
+	 * return the ERROR identifier. In any case, an exception is returned
+	 * to the <code>start</code> caller.
+	 */
+	public static final int ERROR = -2;
+	
+	/**
 	 * The smart buffer used by this stream protocol
 	 */
 	Buffer buffer;
@@ -147,6 +154,8 @@ public class StreamProtocol {
 				handler.onProtocolEnd(buffer);
 				buffer.resetExtras();
 				current = firstState;
+			} else if(current == ERROR) {
+				throw new Exception("Protocol error");
 			}
 		} while(!terminate);
 	}
