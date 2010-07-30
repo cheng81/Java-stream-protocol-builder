@@ -12,8 +12,10 @@ public interface BufferFiller {
 	/**
 	 * Put some bytes in the buf array. Returns the number of bytes wrote.
 	 * @param buf
+	 * @param offset
+	 * @param len
 	 * @return
 	 * @throws Exception
 	 */
-	int fill(byte[] buf) throws Exception;
+	int fill(byte[] buf, int offset, int len) throws Exception;
 }

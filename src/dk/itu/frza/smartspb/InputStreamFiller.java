@@ -11,8 +11,8 @@ public class InputStreamFiller implements BufferFiller {
 	}
 	
 	@Override
-	public int fill(byte[] buf) throws Exception {
-		return is.read(buf);
+	public int fill(byte[] buf, int offset, int len) throws Exception {
+		return is.read(buf,offset,len);
 	}
 
 }

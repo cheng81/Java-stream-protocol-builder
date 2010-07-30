@@ -86,8 +86,11 @@ public class Buffer {
 			temp = append(temp, Arrays.copyOfRange(buf, marked, lastRead));
 			marked = 0;
 		}
-		lastRead = filler.fill(buf);
+		lastRead = filler.fill(buf,0,buf.length);
 		cur = 0;
+		if(lastRead < 0) {
+			throw new EndOfStream();
+		}
 	}
 	private byte[] append(byte[] first, byte[] second) {
 		if(first == null || first.length == 0) {
@@ -117,22 +120,30 @@ public class Buffer {
 	 */
 	public byte[] read(int size) throws Exception {
 		if(hasAtLeastMore(size)) {
-			return Arrays.copyOfRange(buf, cur, (cur+size));
+			int _c = cur;
+			cur+= size;
+			return Arrays.copyOfRange(buf, _c, cur);
 		}
 
-		byte[] out = null;
+		byte[] out = new byte[size];
 		int toGo = size;
+		if(hasMore()) {
+			//copy the rest of the current buffer
+			System.arraycopy(buf, cur, out, 0, (lastRead-cur));
+			toGo -= (lastRead-cur);
+		}
+		//then no need to pass through an intermediate buffer, just use the the out one and call filler.fill on it
+		//until we fill it up.
 		do {
-			if(hasAtLeastMore(toGo)) {
-				out = append(out, Arrays.copyOfRange(buf, cur, (cur+toGo)));
-				cur += toGo;
+			toGo -= filler.fill(out, (size-toGo), toGo);
+			if(toGo == 0) {
 				break;
-			} else {
-				out = append(out, Arrays.copyOfRange(buf, cur, lastRead));
-				toGo -= (lastRead-cur);
-				fill();
 			}
-		} while(toGo != 0);
+		} while(true);
+		//prepare the buffer for further calls to read()
+		//before reading the out byte array, we finished to consume the previous buffer,
+		//so it's safe to fill it now.
+		fill();
 		return out;
 	}
 	

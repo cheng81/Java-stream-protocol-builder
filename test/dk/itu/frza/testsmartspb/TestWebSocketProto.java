@@ -21,7 +21,8 @@ public class TestWebSocketProto extends TestCase {
 	
 	BufferFiller filler = new BufferFiller() {
 		byte[] tmp = null;
-		int call = 0;
+		int curIdx = 0;
+//		int call = 0;
 		private void init() throws Exception {
 			byte start = (byte)0x80;
 			byte end = (byte)0xFF;
@@ -47,18 +48,24 @@ public class TestWebSocketProto extends TestCase {
 			tmp = append(tmp,msg);
 			tmp = append(tmp,new byte[]{end});
 		}
-		public int fill(byte[] buf) throws Exception {
+		public int fill(byte[] buf,int offset, int len) throws Exception {
 			System.out.println("fill called!");
 			if(tmp == null) {
 				init();
 			}
-			//get the slice to copy
-			int startIdx = buf.length * call;
-			int toGo = tmp.length - startIdx;
-			int len = buf.length;
-			len = (len > toGo) ? toGo : len;
-			System.arraycopy(tmp, startIdx, buf, 0, len);
-			call++;
+			
+			if(len > 8) {
+				len = 8; //force division while reading binary
+			}
+			
+			if( (curIdx+len) > tmp.length ) {
+				len = tmp.length - curIdx;
+			}
+			System.out.println(buf.length+" "+offset+" "+len+" "+curIdx);
+
+			System.arraycopy(tmp, curIdx, buf, offset, len);
+			curIdx += len;
+			
 			return len;
 		};
 	};
